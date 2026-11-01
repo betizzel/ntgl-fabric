@@ -1,0 +1,198 @@
+package com.nukateam.ntgl.common.foundation.container;
+
+
+import com.nukateam.ntgl.common.data.WeaponData;
+import com.nukateam.ntgl.common.data.holders.AttachmentType;
+import com.nukateam.ntgl.common.event.*;
+import com.nukateam.ntgl.common.foundation.container.slot.*;
+import com.nukateam.ntgl.common.foundation.init.*;
+import com.nukateam.ntgl.common.util.data.*;
+import com.nukateam.ntgl.common.util.util.WeaponStateHelper;
+import net.minecraft.world.*;
+import net.minecraft.world.entity.player.*;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+
+import static com.nukateam.ntgl.client.render.screen.AttachmentScreen.ATTACHMENT_Y;
+import static com.nukateam.ntgl.client.render.screen.AttachmentScreen.SLOT_SIZE;
+import static com.nukateam.ntgl.common.util.util.WeaponModifierHelper.*;
+
+/**
+ * Author: MrCrayfish
+ */
+public class AttachmentContainer extends AbstractContainerMenu {
+    public static final int SCREEN_OFFSET_Y = 132;
+    public static final Pos2I INVENTORY_OFFSET = new Pos2I(18, SCREEN_OFFSET_Y);
+    public static final Pos2I HOTBAR_OFFSET = new Pos2I(18,SCREEN_OFFSET_Y + 58);
+    private final ItemStack weapon;
+    private final Container playerInventory;
+    private final Container weaponInventory;
+    private final Player player;
+    private boolean loaded = false;
+
+    public AttachmentContainer(int windowId, Inventory playerInventory, ItemStack stack) {
+        this(windowId, playerInventory);
+        var gunData = new WeaponData(stack, playerInventory.player);
+        var sortedAttachments = getAttachmentTypes(gunData);
+        var attachmentItems = new ArrayList<ItemStack>();
+
+        for (var attachmentType : sortedAttachments) {
+            attachmentItems.add(WeaponStateHelper.getAttachmentItem(attachmentType, stack));
+        }
+        for (int i = 0; i < attachmentItems.size(); i++) {
+            this.weaponInventory.setItem(i, attachmentItems.get(i));
+        }
+        this.loaded = true;
+    }
+
+//    public AttachmentContainer(int windowId, Inventory playerInventory) {
+//        super(ModContainers.ATTACHMENTS.get(), windowId);
+//        this.weapon = playerInventory.getSelected();
+//        this.playerInventory = playerInventory;
+//        var attachments = getGunAttachments(weapon);
+//
+//        weaponInventory = new SimpleContainer(attachments.size()){
+//            @Override
+//            public void setChanged() {
+//                super.setChanged();
+//                AttachmentContainer.this.slotsChanged(this);
+//            }
+//        };
+//
+//        var index = 0;
+//        for (var entry : attachments.entrySet()) {
+//            var attachmentType = entry.getKey();
+//            this.addSlot(new AttachmentSlot(this,
+//                    this.weaponInventory,
+//                    this.weapon,
+//                    attachmentType,
+//                    playerInventory.player,
+//                    index,
+//                    7 + index * SLOT_SIZE + 1,
+//                    ATTACHMENT_Y + 1));
+//            index++;
+//        }
+//
+//        addPlayerInventory(playerInventory);
+//    }
+
+    public AttachmentContainer(int windowId, Inventory playerInventory) {
+        super(ModContainers.ATTACHMENTS, windowId);
+        this.weapon = playerInventory.getSelected();
+        this.playerInventory = playerInventory;
+        this.player = playerInventory.player;
+        var gunData = new WeaponData(weapon, playerInventory.player);
+        var sortedTypes = getAttachmentTypes(gunData);
+
+        weaponInventory = new SimpleContainer(sortedTypes.size()) {
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                AttachmentContainer.this.slotsChanged(this);
+            }
+        };
+
+        int index = 0;
+        for (AttachmentType type : sortedTypes) {
+            this.addSlot(new AttachmentSlot(
+                    this,
+                    this.weaponInventory,
+                    this.weapon,
+                    type,
+                    playerInventory.player,
+                    index,
+                    7 + index * SLOT_SIZE + 1,
+                    ATTACHMENT_Y + 1
+            ));
+            index++;
+        }
+
+        addPlayerInventory(playerInventory);
+    }
+
+    public boolean isLoaded() {
+        return this.loaded;
+    }
+
+    @Override
+    public boolean stillValid(Player playerIn) {
+        return true;
+    }
+
+    @Override
+    public void setItem(int slotId, int stateId, ItemStack stack) {
+        var gunData = new WeaponData(this.weapon, this.player);
+        var oldStack = this.getSlot(slotId).getItem();
+        if (!AttachmentEvent.SLOT_UPDATE.invoker().onUpdate(new AttachmentEvent.SlotUpdateEvent(this, gunData, oldStack, stack))) {
+            super.setItem(slotId, stateId, stack);
+        }
+    }
+
+    @Override
+    public void slotsChanged(Container inventoryIn) {
+        var attachments = new ArrayList<ItemStack>();
+
+        AttachmentEvent.CONTAINER_UPDATE.invoker().onUpdate(new AttachmentEvent.ContainerUpdateEvent(this, new WeaponData(this.weapon, this.player)));
+
+        for (int i = 0; i < this.getWeaponInventory().getContainerSize(); i++) {
+            var itemStack = this.getSlot(i).getItem();
+            attachments.add(itemStack);
+        }
+        WeaponStateHelper.saveAttachments(new WeaponData(this.weapon, player), attachments);
+        super.broadcastChanges();
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player playerIn, int index) {
+        var copyStack = ItemStack.EMPTY;
+        var slot = this.slots.get(index);
+        var slotStack = slot.getItem();
+
+        if (!slotStack.isEmpty()) {
+            copyStack = slotStack.copy();
+
+            if (index < this.weaponInventory.getContainerSize()) {
+                if (!this.moveItemStackTo(slotStack, this.weaponInventory.getContainerSize(), this.slots.size(), true))
+                    return ItemStack.EMPTY;
+            }
+            else if (!this.moveItemStackTo(slotStack, 0, this.weaponInventory.getContainerSize(), false))
+                return ItemStack.EMPTY;
+
+            if (slotStack.isEmpty())
+                slot.set(ItemStack.EMPTY);
+            else slot.setChanged();
+        }
+
+        return copyStack;
+    }
+
+    public Container getPlayerInventory() {
+        return this.playerInventory;
+    }
+
+    public Container getWeaponInventory() {
+        return this.weaponInventory;
+    }
+
+    private void addPlayerInventory(Inventory playerInventory) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 9; j++)
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 8 + j * INVENTORY_OFFSET.x, INVENTORY_OFFSET.y + i * 18));
+        }
+
+        for (int i = 0; i < 9; i++) {
+            if (i == playerInventory.selected) {
+                this.addSlot(new Slot(playerInventory, i, 8 + i * HOTBAR_OFFSET.x, HOTBAR_OFFSET.y) {
+                    @Override
+                    public boolean mayPickup(Player playerIn) {
+                        return false;
+                    }
+                });
+            }
+            else this.addSlot(new Slot(playerInventory, i, 8 + i * HOTBAR_OFFSET.x, HOTBAR_OFFSET.y));
+        }
+    }
+
+}

@@ -1,0 +1,63 @@
+{
+  "required": true,
+  "package": "com.nukateam.ntgl.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "StunTargetMixin",
+    "IncurableMilkMixin",
+    "ntgl.common.AnvilMenuMixin",
+    "ntgl.common.BuiltInPackSourceMixin",
+    "ntgl.common.EnchantmentHelperMixin",
+    "ntgl.common.EndPortalBlockMixin",
+    "ntgl.common.LivingEntityMixin",
+    "ntgl.common.MobGoalSelectorAccessor",
+    "ntgl.common.PlayerTrackerTickMixin",
+    "ntgl.common.ServerGamePacketListenerImplMixin",
+    "ntgl.common.SittingPhaseMixin",
+    "ntgl.common.WorkbenchIngredientMixin",
+
+    "chassis.common.LivingEntityMixin",
+    "chassis.common.LivingEntityJumpAccessor",
+    "chassis.common.MixinProjectileUtil",
+    "chassis.common.MobMixin",
+    "chassis.common.PlayerMixin"
+  ],
+  "client": [
+    "ntgl.client.AgeableListModelAccessor",
+    "ntgl.client.CameraMixin",
+    "ntgl.client.GuiMixin",
+    "ntgl.client.GameRendererMixin",
+    "ntgl.client.LivingEntityRendererMixin",
+    "ntgl.client.GeoEntityRendererMixin",
+    "ntgl.client.ItemInHandLayerMixin",
+    "ntgl.client.ItemInHandRendererAccessor",
+    "ntgl.client.ItemInHandRendererMixin",
+    "ntgl.client.ItemRendererMixin",
+    "ntgl.client.LivingEntityModelMixin",
+    "ntgl.client.MinecraftItemColorsAccessor",
+    "ntgl.client.MinecraftMixin",
+    "ntgl.client.MultiPlayerGameModeMixin",
+    "ntgl.client.MouseHandlerMixin",
+    "ntgl.client.MouseSettingsScreenMixin",
+    "ntgl.client.NarratorMixin",
+    "ntgl.client.QuadrupedModelAccessor",
+    "ntgl.client.RenderTypeLookupMixin",
+    "ntgl.client.SoundEngineAccessor",
+    "ntgl.client.SoundEngineMixin",
+    "ntgl.client.SoundOptionsScreenMixin",
+    "ntgl.client.VillagerModelAccessor",
+
+    "chassis.client.ClientPacketListenerMixin",
+    "chassis.client.CreativeInventoryScreenMixin",
+    "chassis.client.KeyboardHandlerMixin",
+    "chassis.client.ForgeIngameGuiMixin",
+    "chassis.client.GameRendererMixin",
+    "chassis.client.InventoryScreenMixin",
+    "chassis.client.PlayerRendererMixin",
+    "chassis.client.ModelPartMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

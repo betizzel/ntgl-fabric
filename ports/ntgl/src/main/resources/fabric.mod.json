@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "ntgl",
+  "version": "${version}",
+  "name": "NukaTeam's Gun Lib",
+  "description": "Core for gun mods",
+  "authors": ["Dayton", "Jetug"],
+  "license": "LGPL-2.1-only",
+  "icon": "logo.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.nukateam.ntgl.Ntgl"],
+    "client": ["com.nukateam.ntgl.client.NtglClient"]
+  },
+  "mixins": ["ntgl.mixin.json"],
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "fabric-api": "*",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "geckolib": ">=4.8.2",
+    "forgeconfigapiport": ">=8.0.2",
+    "cloth-config": ">=11.1.118",
+    "porting_lib_fluids": ">=2.3.2",
+    "porting_lib_entity": ">=2.3.13"
+  }
+}

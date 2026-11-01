@@ -1,0 +1,36 @@
+{
+  "part": "ntgl:body",
+  "hide": ["body_bottom_frame"],
+
+  "mods" : [
+    "jetpack"
+  ],
+
+  "id": "ntgl:t45",
+
+  "attachments": [
+    {
+      "frame": "body_top",
+      "armor": "body_top_armor"
+    },
+    {
+      "frame": "body_top",
+      "armor": "jetpack"
+    },
+    {
+      "frame": "body_bottom",
+      "armor": "body_bottom_armor"
+    },
+    {
+      "frame": "body_back2",
+      "armor": "body_back_armor"
+    }
+  ],
+
+  "chassis": ["ntgl:power_armor_frame"],
+  "model": "ntgl:geo/power_armor/t45.geo.json",
+
+  "texture": {
+    "default": "ntgl:textures/power_armor/t45/t45_material.png"
+  }
+}

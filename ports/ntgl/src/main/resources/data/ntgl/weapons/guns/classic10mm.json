@@ -1,0 +1,299 @@
+{
+  "general": {
+    "action": "ntgl:gun",
+    "rate": 10,
+    "gripType": "ntgl:vanilla",
+    "fireMode": ["ntgl:auto", "ntgl:semi"],
+    "loadingType": "magazine",
+    "maxAmmo": 6,
+    "reloadTime": 50,
+    "equipTime": 15,
+    "reloadAmount": 1,
+    "recoilAngle": 7.0,
+    "recoilKick": 0.4,
+    "recoilAdsReduction": 0.15,
+    "alwaysSpread": true,
+    "enchantable": false,
+    "oneHanded": true,
+    "renderHud": true,
+    "spread": 2.0,
+    "movementSpeed": 1,
+    "melee": true,
+    "ammo": [
+      "minecraft:stick",
+      "ntgl:round10mm",
+      "ntgl:round45"
+    ],
+    "attributeModifiers": [
+      {
+        "attribute": "minecraft:generic.movement_speed",
+        "value": 1,
+        "operation": "MULTIPLY_BASE"
+      }
+    ]
+  },
+  "ammoData":{
+    "minecraft:stick": {
+      "projectile": {
+        "damage": 12.0,
+        "projectile": "ntgl:arrow_like",
+        "damageType": "ntgl:fire",
+        "visible": true,
+        "size": 5.0,
+        "speed": 3.0,
+        "life": 120,
+        "pierceLevel": 2,
+        "burnSeconds": 5,
+        "projectileAmount": 1,
+        "hitSound": "minecraft:entity.arrow.hit"
+      }
+    },
+    "ntgl:round10mm": {
+      "projectile": {
+        "visible": true,
+        "damage": 2.0,
+        "size": 5.0,
+        "speed": 3.0,
+        "life": 120,
+        "projectile": "ntgl:laser",
+        "variant": "ntgl:laser",
+        "pierceLevel": 2,
+        "burnSeconds": 5,
+        "projectileAmount": 1,
+        "hitSound": "minecraft:entity.arrow.hit"
+      }
+    },
+    "ntgl:round45" : {
+      "ammo": {
+        "type": "ntgl:piercing"
+      },
+      "projectile": {
+        "damage": 20.0,
+        "life": 120
+      }
+    }
+  },
+  "modes": {
+    "ntgl:secondary": {
+      "general": {
+        "action": "ntgl:scope"
+      },
+      "zoom": {
+        "offset": [0.0, 4.8, 0.0],
+        "fovModifier": 0.7
+      }
+    },
+    "ntgl:additional": {
+      "general": {
+        "action": "ntgl:shot",
+        "weaponModeMeta": "ntgl:under_barrel",
+        "rate": 4,
+        "fireMode": ["ntgl:semi"],
+        "maxAmmo": 10,
+        "reloadTime": 30,
+        "reloadAmount": 2,
+        "recoilAngle": 5.0,
+        "recoilKick": 0.3,
+        "recoilAdsReduction": 0.25,
+        "alwaysSpread": true,
+        "spread": 1.0,
+        "melee": true,
+        "ammo": [
+          "ntgl:round45",
+          "ntgl:round38"
+        ]
+      },
+      "ammoData":{
+        "ntgl:round45": {
+          "ammo": {
+            "type": "ntgl:incendiary"
+          },
+          "projectile": {
+            "visible": true,
+            "damage": 2.0,
+            "size": 5.0,
+            "speed": 3.0,
+            "life": 120
+          }
+        },
+        "ntgl:round38": {
+          "ammo": {
+            "type": "ntgl:piercing"
+          },
+          "projectile": {
+            "visible": true,
+            "damage": 2.0,
+            "size": 5.0,
+            "speed": 3.0,
+            "life": 120
+          }
+        }
+      },
+      "melee": {
+        "mode": "ntgl:auto",
+        "damage": 10,
+        "delay": 4,
+        "cooldown": 20,
+        "distance": 6,
+        "angle": 20,
+        "maxTargets": 1,
+        "knockback": 0.4
+      }
+    },
+    "ntgl:alternative": {
+      "general": {
+        "action": "ntgl:shot",
+        "weaponModeMeta": "ntgl:under_barrel",
+        "rate": 4,
+        "fireMode": ["ntgl:semi"],
+        "maxAmmo": 20,
+        "reloadTime": 30,
+        "reloadAmount": 2,
+        "recoilAngle": 5.0,
+        "recoilKick": 0.3,
+        "recoilAdsReduction": 0.25,
+        "alwaysSpread": true,
+        "spread": 1.0,
+        "melee": true,
+        "ammo": [
+          "ntgl:shotshell",
+          "ntgl:round5mm"
+        ]
+      },
+      "ammoData":{
+        "ntgl:shotshell": {
+          "ammo": {
+            "type": "ntgl:buckshot"
+          },
+          "projectile": {
+            "visible": true,
+            "damage": 2.0,
+            "size": 5.0,
+            "speed": 3.0,
+            "life": 120,
+            "burnSeconds": 5,
+            "projectileAmount": 1
+          }
+        }
+      }
+    }
+  },
+  "display": {
+    "offset": [0.0, 0.0, 0.0],
+    "nonHandOffset": [0.0, 0.0, 0.0]
+  },
+  "zoom": {
+    "offset": [0.0, 4.8, 0.0],
+    "fovModifier": 0.7,
+    "movementModifier": 0.5
+  },
+  "fuel": {
+    "ntgl:burnable":{
+      "max": 1000,
+      "ammo": {
+        "type": "ntgl:fire",
+        "counter": "ntgl:bar"
+      }
+    }
+  },
+  "animations": {
+    "ntgl:reload": "ntgl:revolver_reload"
+  },
+  "textures": {
+    "default" : "ntgl:textures/weapons/classic10mm/classic10mm.png",
+    "blue"    : "ntgl:textures/weapons/classic10mm/classic10mm_blue.png",
+    "black"   : "ntgl:textures/weapons/classic10mm/classic10mm_black.png",
+    "brown"   : "ntgl:textures/weapons/classic10mm/classic10mm_brown.png",
+    "gray"    : "ntgl:textures/weapons/classic10mm/classic10mm_gray.png",
+    "cyan"    : "ntgl:textures/weapons/classic10mm/classic10mm_cyan.png",
+    "green"   : "ntgl:textures/weapons/classic10mm/classic10mm_green.png",
+    "pink"    : "ntgl:textures/weapons/classic10mm/classic10mm_pink.png",
+    "rust"    : "ntgl:textures/weapons/classic10mm/classic10mm_rust.png"
+  },
+  "sounds": {
+    "fire": "ntgl:item.pistol10mm.fire",
+    "reload": "ntgl:item.pistol45mm.reload",
+    "cock": "ntgl:item.pistol45mm.cock",
+    "silencedFire": "ntgl:item.pistol10mm.silenced_fire",
+    "enchantedFire": "ntgl:item.pistol10mm.enchanted_fire"
+  },
+  "modules": {
+    "attachments": {
+      "ntgl:scope": [
+        {
+          "name": "scope_1",
+          "item": "ntgl:collimator_sight"
+        },
+        {
+          "name": "scope_2",
+          "bones": ["scope_2", "chamber", "cock"],
+          "item": "ntgl:holographic_sight"
+        },
+        {
+          "name": "scope_3",
+          "item": "ntgl:hunting_optics"
+        },
+        {
+          "name": "scope_4",
+          "item": "ntgl:iron_sight"
+        },
+        {
+          "name": "scope_5",
+          "item": "ntgl:scout_sight"
+        },
+        {
+          "name": "scope_6",
+          "item": "ntgl:laser_all_vision"
+        }
+      ],
+      "ntgl:barrel": [
+        {
+          "name": "barrel_1",
+          "item": "ntgl:silencer",
+          "hide": [
+            "muzzle_flash"
+          ]
+        },
+        {
+          "name": "barrel_2",
+          "item": "ntgl:flame_hider"
+        },
+        {
+          "name": "barrel_3",
+          "item": "ntgl:compensator"
+        },
+        {
+          "name": "barrel_4",
+          "item": "ntgl:heavy_barrel"
+        },
+        {
+          "name": "barrel_5",
+          "item": "ntgl:long_barrel"
+        }
+      ],
+      "ntgl:stock": [
+        {
+          "name": "grip_1",
+          "item": "ntgl:specialised_grip",
+          "hide": [
+            "grip_default"
+          ]
+        },
+        {
+          "name": "grip_3",
+          "item": "ntgl:tactical_grip",
+          "hide": [
+            "grip_default"
+          ]
+        },
+        {
+          "name": "grip_2",
+          "item": "ntgl:weighted_grip",
+          "hide": [
+            "grip_default"
+          ]
+        }
+      ]
+    }
+  }
+}

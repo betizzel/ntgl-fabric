@@ -1,0 +1,200 @@
+package com.nukateam.ntgl.client.render.renderers.weapon;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.nukateam.ntgl.Ntgl;
+import com.nukateam.geo.render.ItemAnimator;
+import com.nukateam.ntgl.client.helpers.MuzzleMatrixHelper;
+import com.nukateam.ntgl.client.util.ClientDebug;
+import com.nukateam.ntgl.client.util.handler.AimingHandler;
+import com.nukateam.ntgl.client.util.helpers.TransformUtils;
+import com.nukateam.ntgl.common.data.WeaponData;
+import com.nukateam.ntgl.common.data.config.weapon.Modules;
+import com.nukateam.ntgl.common.data.config.weapon.WeaponConfig;
+import com.nukateam.ntgl.common.data.holders.AttachmentType;
+import com.nukateam.ntgl.common.util.util.WeaponModifierHelper;
+import com.nukateam.ntgl.common.util.data.Rgba;
+import com.nukateam.ntgl.common.foundation.item.attachment.BarrelItem;
+import com.nukateam.ntgl.common.util.util.WeaponStateHelper;
+import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.model.GeoModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.registries.BuiltInRegistries;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
+
+import java.util.ArrayList;
+
+import static com.nukateam.ntgl.client.util.ClientDebug.*;
+
+public class DynamicWeaponRenderer<Animator extends ItemAnimator> extends ArmedModelRenderer<Animator> {
+    public static final String MUZZLE_FLASH = "muzzle_flash";
+    protected MultiBufferSource bufferSource;
+    protected ArrayList<ItemStack> gunAttachments;
+    protected ArrayList<Modules.Attachment> configAttachments;
+    protected ArrayList<String> hiddenBones = new ArrayList<>();
+    protected BarrelItem barrelItem;
+    protected WeaponConfig weaponConfig;
+    protected ItemStack gunStack;
+    private ItemDisplayContext transformType;
+
+    public DynamicWeaponRenderer(GeoModel<Animator> model) {
+        super(model);
+    }
+
+    @Override
+    public void render(LivingEntity entity, ItemStack stack, ItemDisplayContext transformType, PoseStack poseStack,
+                       @Nullable MultiBufferSource bufferSource,
+                       @Nullable RenderType renderType, @Nullable VertexConsumer buffer, int packedLight) {
+        this.bufferSource = bufferSource;
+        this.transformType = transformType;
+        this.weaponConfig = WeaponModifierHelper.getConfig(new WeaponData(stack, entity));
+        this.gunStack = stack;
+        this.gunAttachments = WeaponStateHelper.getAttachmentItems(stack);
+        this.configAttachments = weaponConfig.getAttachmentConfigs(gunAttachments);
+        this.currentEntity = entity;
+
+        if (TransformUtils.isFirstPerson(transformType) && AimingHandler.isScoping(stack))
+            return;
+
+        var barrelStack = WeaponStateHelper.getAttachmentItem(AttachmentType.BARREL, stack);
+
+        if(barrelStack.getItem() instanceof BarrelItem barrel) {
+            this.barrelItem = barrel;
+        }
+        else this.barrelItem = null;
+
+        prepareHiddenBones(transformType);
+
+        poseStack.pushPose();
+        {
+            var offset = WeaponModifierHelper.getWeaponOffset(new WeaponData(stack, entity));
+            poseStack.translate(offset.x / 16D, offset.y / 16D, offset.z / 16D);
+            poseStack.translate(weaponX / 10d / 16D , weaponY / 10d / 16D, weaponZ / 10d / 16D);
+
+            if(TransformUtils.isFirstPerson(transformType)){
+                poseStack.translate(1.5 / 16D, -1.0 / 16D, 0.0 / 16D);
+            }
+            else if(TransformUtils.isThirdPerson(transformType)){
+                poseStack.translate(0.0 / 16D, 3.5 / 16D, 2.5 / 16D);
+            }
+            else {
+                var staticOffset = WeaponModifierHelper.getNonHandOffset(new WeaponData(stack, entity));
+                poseStack.translate(staticOffset.x / 16D, staticOffset.y / 16D, staticOffset.z / 16D);
+                poseStack.translate(0, -0.5 / 16D, 0 / 16d);
+            }
+            super.render(entity, stack, transformType, poseStack, bufferSource, renderType, buffer, packedLight);
+        }
+        poseStack.popPose();
+    }
+
+    @Override
+    public void renderRecursively(PoseStack poseStack, Animator animatable, GeoBone bone, RenderType renderType,
+                                  MultiBufferSource bufferSource, VertexConsumer buffer,
+                                  boolean isReRender, float partialTick, int packedLight, int packedOverlay,
+                                  float red, float green, float blue, float alpha) {
+        poseStack.pushPose();
+        renderAttachments(bone);
+
+        if (bone.getName().equals(MUZZLE_FLASH)) {
+            if (barrelItem != null) {
+                renderMuzzleFlash(poseStack);
+            }
+        }
+
+        if(bone.getName().startsWith(MUZZLE_FLASH) && !TransformUtils.isHandTransform(transformType)) {
+            bone.setHidden(true);
+        }
+        if (!bone.isHidden() && bone.getName().startsWith(MUZZLE_FLASH)) {
+            Matrix4f mat = new Matrix4f(poseStack.last().pose());
+            mat.translate(
+                (bone.getPivotX() + bone.getPosX()) / 16.0f,
+                (bone.getPivotY() + bone.getPosY()) / 16.0f,
+                (bone.getPivotZ() + bone.getPosZ()) / 16.0f
+            );
+
+            boolean isFirstPerson = this.transformType == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                    || this.transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+            boolean isThirdPerson = this.transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                    || this.transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+
+            LivingEntity entity = this.getRenderEntity();
+
+            if (entity != null) {
+                if (isFirstPerson) {
+                    MuzzleMatrixHelper.saveMuzzleMatrix(entity.getId(), mat, true);
+                    MuzzleMatrixHelper.lastMuzzleMatrix = mat;
+                } else if (isThirdPerson) {
+                    MuzzleMatrixHelper.saveMuzzleMatrix(entity.getId(), mat, false);
+                    MuzzleMatrixHelper.lastThirdPersonMuzzleMatrix = mat;
+                }
+            }
+        }
+
+        renderRecursivelyPost(poseStack, animatable, bone, renderType, bufferSource,
+                buffer, isReRender, partialTick, packedLight, packedOverlay, new Rgba(red, green, blue, alpha));
+
+        super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource,
+                this.bufferSource.getBuffer(renderType), isReRender, partialTick, packedLight,
+                packedOverlay, red, green, blue, alpha);
+        poseStack.popPose();
+    }
+    
+    protected void renderRecursivelyPost(PoseStack poseStack, Animator animatable, GeoBone bone, RenderType renderType,
+                                         MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
+                                         float partialTick, int packedLight, int packedOverlay, Rgba rgba) {}
+
+
+    protected void renderAttachments(GeoBone bone) {
+        var boneName = bone.getName();
+        var hideBone = hiddenBones.stream().anyMatch((s) -> s.equals(boneName));
+        bone.setHidden(hideBone);
+    }
+
+    protected void renderMuzzleFlash(PoseStack poseStack) {
+        var length = barrelItem.getProperties().getLength();
+        poseStack.translate(0, 0, -length / 16D);
+        if (Ntgl.isDebugging())
+            poseStack.translate(-muzzleFlashX / 10D / 16D, muzzleFlashY / 10D / 16D, muzzleFlashZ / 10D / 16D);
+    }
+
+    protected void prepareHiddenBones(ItemDisplayContext transformType) {
+        if(gunStack == null || gunStack.isEmpty()) return;
+
+        hiddenBones.clear();
+        var gunAttachments = this.weaponConfig.getModules().getAttachments();
+
+        var visibleBones = new ArrayList<String>();
+
+        gunAttachments.forEach((type, typeAttachments) -> {
+            var item = WeaponStateHelper.getAttachmentItem(type, gunStack);
+
+            for (var attachment : typeAttachments) {
+                if (shouldRenderAttachment(attachment, item)) {
+                    if (transformType != ItemDisplayContext.GUI) {
+                        hiddenBones.addAll(attachment.getHidden());
+                        visibleBones.add(attachment.getName());
+                        visibleBones.addAll(attachment.getBones());
+                    }
+                } else {
+                    hiddenBones.add(attachment.getName());
+                    hiddenBones.addAll(attachment.getBones());
+                }
+            }
+        });
+
+        hiddenBones.removeAll(visibleBones);
+    }
+
+    protected boolean shouldRenderAttachment(Modules.Attachment attachment, ItemStack item) {
+        if (transformType != ItemDisplayContext.GUI) {
+            var itemId = BuiltInRegistries.ITEM.getKey(item.getItem());
+            return !item.isEmpty() && attachment.getItemId().equals(itemId);
+        }
+        return false;
+    }
+}

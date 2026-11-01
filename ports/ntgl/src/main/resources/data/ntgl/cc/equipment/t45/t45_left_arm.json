@@ -1,0 +1,34 @@
+{
+  "part": "ntgl:left_arm",
+
+  "id": "ntgl:t45",
+
+  "attachments": [
+    {
+      "frame": "left_shoulder",
+      "armor": "left_shoulder_armor"
+    },
+    {
+      "frame": "left_arm",
+      "armor": "left_upper_arm_armor"
+    },
+    {
+      "frame": "left_lower_arm",
+      "armor": "left_forearm_armor"
+    },
+    {
+      "frame": "left_upper_arm_back",
+      "armor": "left_upper_arm_back_armor"
+    },
+    {
+      "frame": "left_forearm_back",
+      "armor": "left_forearm_back_armor"
+    }
+  ],
+
+  "chassis": ["ntgl:power_armor_frame"],
+  "model": "ntgl:geo/power_armor/t45.geo.json",
+  "texture": {
+    "default": "ntgl:textures/power_armor/t45/t45_material.png"
+  }
+}

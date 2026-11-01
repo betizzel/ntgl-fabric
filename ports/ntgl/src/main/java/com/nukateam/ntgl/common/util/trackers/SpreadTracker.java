@@ -1,0 +1,68 @@
+package com.nukateam.ntgl.common.util.trackers;
+
+import com.nukateam.ntgl.Config;
+import com.nukateam.ntgl.Ntgl;
+import com.nukateam.ntgl.common.foundation.init.ModSyncedDataKeys;
+import com.nukateam.ntgl.common.foundation.item.interfaces.IWeapon;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.LivingEntity;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableLong;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+/**
+ * Author: MrCrayfish
+ */
+public class SpreadTracker {
+    private static final Map<LivingEntity, SpreadTracker> TRACKER_MAP = new WeakHashMap<>();
+
+    private final Map<IWeapon, Pair<MutableLong, MutableInt>> SPREAD_TRACKER_MAP = new HashMap<>();
+
+    public void update(LivingEntity entity, IWeapon item) {
+        var entry = SPREAD_TRACKER_MAP.computeIfAbsent(item, gun -> Pair.of(new MutableLong(-1), new MutableInt()));
+        var lastFire = entry.getLeft();
+
+        if (lastFire.getValue() != -1) {
+            MutableInt spreadCount = entry.getRight();
+            long deltaTime = System.currentTimeMillis() - lastFire.getValue();
+            if (deltaTime < Config.COMMON.projectileSpread.spreadThreshold.get()) {
+                if (spreadCount.getValue() < Config.COMMON.projectileSpread.maxCount.get()) {
+                    spreadCount.increment();
+
+                    /* Increases the spread count quicker if the player is not aiming down sight */
+                    if (spreadCount.getValue() < Config.COMMON.projectileSpread.maxCount.get() && !ModSyncedDataKeys.AIMING.getValue(entity)) {
+                        spreadCount.increment();
+                    }
+                }
+            } else {
+                spreadCount.setValue(0);
+            }
+        }
+        lastFire.setValue(System.currentTimeMillis());
+    }
+
+    public float getSpread(IWeapon item) {
+        var entry = SPREAD_TRACKER_MAP.get(item);
+        if (entry != null) {
+            return (float) entry.getRight().getValue() / (float) Config.COMMON.projectileSpread.maxCount.get();
+        }
+        return 0F;
+    }
+
+    public static SpreadTracker get(LivingEntity entity) {
+        return TRACKER_MAP.computeIfAbsent(entity, player1 -> new SpreadTracker());
+    }
+
+    public static void register() {
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> TRACKER_MAP.remove(handler.player));
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> TRACKER_MAP.remove(entity));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> TRACKER_MAP.clear());
+    }
+}
